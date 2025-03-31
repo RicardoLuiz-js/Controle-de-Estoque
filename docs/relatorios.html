@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Estoque</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="../imagens/Estoque.png" type="image/png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body style="overflow-y: auto;">
+  <header>
+    <a href="index.html"><p>Controle De Estoque</p></a>
+  </header>
+
+  <main>
+    <div id="mobile-menu-icon">&#9776;</div> <!-- Ícone de hambúrguer -->
+    <div id="Menu" style="height: 530vh; justify-content: flex-start; padding-top: 4.8%;">
+      
+      <div id="close-menu-icon">&#10005;</div> <!-- Botão de "X" para fechar o menu -->
+        <div style="position: fixed; display: flex; flex-direction: column; align-items: center;">
+
+            
+             <a href="index.html">  <div class="circle-container">  <div class="circle"><img class="icon" src="../imagens/home.png" alt=""></div><p>Home</p></div></a>
+             <a href="adicionarhtml.php">  <div class="circle-container"> <div class="circle"><img class="icon" src="../imagens/adicionar.png" alt=""></div><p>Adicionar</p></div></a>
+             <a href="utilizar.html"> <div class="circle-container"> <div class="circle"><img class="icon" src="../imagens/botao-de-menos.png" alt=""></div><p>Utilizar</p></div></a>
+             <a href="LimparDados.html"> <div class="circle-container"><div class="circle"><img class="icon1" src="../imagens/Limpar.png" alt=""></div><p>Limpar Dados</p></div></a>
+             <a href="relatorios.html"> <div class="circle-container"> <div class="circle"><img class="icon1" src="../imagens/Relatorios.png" alt=""></div><p>Relatorios</p></div></a>
+          
+
+    </div>
+  </div>
+
+    <div id="corpo">
+      <div id="cabecalho">
+        <p>Relatorios do Estoque</p>
+      </div>
+
+      <!-- Relatório de Inventário Atual -->
+      <div class="cabdados" >
+        <h2>Inventário Atual</h2>
+      </div>
+      <div class="dados-container" style="overflow-y: auto; overflow-x: auto;" >
+        <canvas id="inventarioChart" width="400" height="200"></canvas>
+      
+      </div>
+      <div class="dados-container" style="overflow-y: auto; overflow-x: auto;" >
+      
+        <table style="margin-top: 30%;"  id="tabelaInventario"></table>
+      </div>
+
+ <!-- Relatório de Produtos Mais Consumidos -->
+ <div class="cabdados">
+    <h2>Produtos Mais Consumidos</h2>
+  </div>
+  <div class="dados-container" style="overflow-x: auto;">
+    <canvas id="consumidosChart" width="400" height="200"></canvas>
+  </div>
+
+
+  
+ <!-- Pessoas que Mais Utilizaram Produtos -->
+  <div class="cabdados">
+    <h2>Pessoas que Mais Utilizaram Produtos</h2>
+</div>
+<div class="dados-container" style="overflow-x: auto;">
+    <canvas id="pessoasChart" width="400" height="200"></canvas>
+</div>
+
+
+
+      <!-- Relatório de Movimentação de Estoque -->
+      <div class="cabdados">
+        <h2>Movimentação de Estoque</h2>
+      </div>
+      <div class="dados-container" style="overflow-y: auto;">
+        <table style="margin-top: 30%; z-index: 0;" id="tabelaMovimentacao"></table>
+      </div>
+
+     
+
+      <!-- Relatório de Produtos Obsoletos -->
+      <div class="cabdados">
+        <h2>Produtos Obsoletos</h2>
+      </div>
+      <div class="dados-container" style="overflow-y: auto;">
+        <table style="margin-top: 30%;" id="tabelaObsoletos"></table>
+      </div>
+
+      <!-- Relatório de Reposição de Estoque -->
+      <div class="cabdados">
+        <h2>Reposição de Estoque</h2>
+      </div>
+      <div class="dados-container" style="overflow-y: auto;">
+        <table style="margin-top: 30%;" id="tabelaReposicao"></table>
+      </div>
+
+      <!-- Relatório de Validade de Produtos -->
+      <div class="cabdados">
+        <h2>Validade de Produtos</h2>
+      </div>
+      <div class="dados-container" style="overflow-y: auto;">
+        <table style="margin-top: 30%;" id="tabelaValidade"></table>
+      </div>
+
+     
+  </main>
+
+  <script>
+
+// Abre o menu ao clicar no ícone de hambúrguer
+document.getElementById('mobile-menu-icon').addEventListener('click', function() {
+    var menu = document.getElementById('Menu');
+    menu.classList.add('active');
+});
+
+// Fecha o menu ao clicar no botão de "X"
+document.getElementById('close-menu-icon').addEventListener('click', function() {
+    var menu = document.getElementById('Menu');
+    menu.classList.remove('active');
+});
+
+
+    // Função para formatar datas
+    function formatarData(data) {
+      return new Date(data).toLocaleDateString('pt-BR');
+    }
+
+    // Relatório de Inventário Atual
+    fetch('../php/buscar_produtos.php')
+      .then(response => response.json())
+      .then(data => {
+        const categorias = {};
+        data.forEach(produto => {
+          if (categorias[produto.categoria]) {
+            categorias[produto.categoria] += parseInt(produto.quantidade);
+          } else {
+            categorias[produto.categoria] = parseInt(produto.quantidade);
+          }
+        });
+
+        const ctx = document.getElementById('inventarioChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(categorias),
+            datasets: [{
+              label: 'Quantidade em Estoque',
+              data: Object.values(categorias),
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
+        // Tabela de valores
+        const tbody = document.getElementById('tabelaInventario');
+        tbody.innerHTML = '';
+        data.forEach(produto => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>${produto.quantidade}</td>
+            
+          `;
+          tbody.appendChild(row);
+        });
+      });
+
+    // Relatório de Movimentação de Estoque
+    fetch('../php/buscar_utilizados.php')
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById('tabelaMovimentacao');
+        tbody.innerHTML = '';
+        data.forEach(movimentacao => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${movimentacao.nome_produto}</td>
+            <td>${movimentacao.quantidade_utilizada}</td>
+            <td>${formatarData(movimentacao.data_saida)}</td>
+            
+           
+          `;
+          tbody.appendChild(row);
+        });
+      });
+
+    // Relatório de Produtos Mais Consumidos
+    fetch('../php/buscar_utilizados.php')
+      .then(response => response.json())
+      .then(data => {
+        const produtosConsumidos = {};
+        data.forEach(movimentacao => {
+          if (produtosConsumidos[movimentacao.nome_produto]) {
+            produtosConsumidos[movimentacao.nome_produto] += parseInt(movimentacao.quantidade_utilizada);
+          } else {
+            produtosConsumidos[movimentacao.nome_produto] = parseInt(movimentacao.quantidade_utilizada);
+          }
+        });
+
+        const ctx = document.getElementById('consumidosChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(produtosConsumidos),
+            datasets: [{
+              label: 'Quantidade Consumida',
+              data: Object.values(produtosConsumidos),
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      });
+
+    // Relatório de Produtos Obsoletos
+    fetch('../php/buscar_utilizados.php')
+      .then(response => response.json())
+      .then(data => {
+        const produtosObsoletos = data.filter(movimentacao => {
+          const dataSaida = new Date(movimentacao.data_saida);
+          const hoje = new Date();
+          const diffMeses = (hoje.getFullYear() - dataSaida.getFullYear()) * 12 + (hoje.getMonth() - dataSaida.getMonth());
+          return diffMeses > 6; // Produtos sem movimentação há mais de 6 meses
+        });
+
+        const tbody = document.getElementById('tabelaObsoletos');
+        tbody.innerHTML = '';
+        produtosObsoletos.forEach(produto => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${produto.nome_produto}</td>
+            <td>${formatarData(produto.data_saida)}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+
+    // Relatório de Reposição de Estoque
+    fetch('../php/buscar_produtos.php')
+      .then(response => response.json())
+      .then(data => {
+        const produtosReposicao = data.filter(produto => produto.quantidade < 5);
+
+        const tbody = document.getElementById('tabelaReposicao');
+        tbody.innerHTML = '';
+        produtosReposicao.forEach(produto => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>${produto.quantidade}</td>
+            <td>Minimo 5</td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+
+    // Relatório de Validade de Produtos
+    fetch('../php/buscar_produtos.php')
+      .then(response => response.json())
+      .then(data => {
+        const produtosProximoVencimento = data.filter(produto => {
+          const dataValidade = new Date(produto.validade);
+          const hoje = new Date();
+          const diffDias = Math.floor((dataValidade - hoje) / (1000 * 60 * 60 * 24));
+          return diffDias <= 30; // Produtos que vencem em até 30 dias
+        });
+
+        const tbody = document.getElementById('tabelaValidade');
+        tbody.innerHTML = '';
+        produtosProximoVencimento.forEach(produto => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>${formatarData(produto.validade)}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+
+   // Relatório de Pessoas que Mais Utilizaram Produtos
+fetch('../php/buscar_utilizados.php')
+    .then(response => response.json())
+    .then(data => {
+        const pessoas = {};
+        data.forEach(movimentacao => {
+            if (pessoas[movimentacao.responsavel]) {
+                pessoas[movimentacao.responsavel] += parseInt(movimentacao.quantidade_utilizada);
+            } else {
+                pessoas[movimentacao.responsavel] = parseInt(movimentacao.quantidade_utilizada);
+            }
+        });
+
+        // Ordenar as pessoas por quantidade utilizada (do maior para o menor)
+        const pessoasOrdenadas = Object.entries(pessoas).sort((a, b) => b[1] - a[1]);
+
+        // Pegar apenas os top 10 (ou menos) para o gráfico
+        const topPessoas = pessoasOrdenadas.slice(0, 10);
+
+        const ctx = document.getElementById('pessoasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar', // Pode ser 'bar', 'pie', 'doughnut', etc.
+            data: {
+                labels: topPessoas.map(pessoa => pessoa[0]), // Nomes das pessoas
+                datasets: [{
+                    label: 'Quantidade Utilizada',
+                    data: topPessoas.map(pessoa => pessoa[1]), // Quantidades
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(199, 199, 199, 0.2)',
+                        'rgba(83, 102, 255, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(199, 199, 199, 1)',
+                        'rgba(83, 102, 255, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+
+
+  </script>
+</body>
+</html>
