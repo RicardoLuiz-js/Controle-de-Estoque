@@ -1,8 +1,14 @@
 
+ 
 
-
-
-
+// Atualiza os contadores ao carregar a página
+var checkReadyState = setInterval(function() {
+    if (document.readyState === "complete") {
+        atualizarContadores();
+      
+        clearInterval(checkReadyState); // Para de verificar após a execução da função
+    }
+}, 1000); // Verifica a cada 1000ms (1 segundo)
 
 
 
@@ -493,11 +499,4 @@ document.getElementById('close-menu-icon').addEventListener('click', function() 
 
 
 
-// Atualiza os contadores ao carregar a página
-var checkReadyState = setInterval(function() {
-    if (document.readyState === "complete") {
-        atualizarContadores();
-      
-        clearInterval(checkReadyState); // Para de verificar após a execução da função
-    }
-}, 1000); // Verifica a cada 1000ms (1 segundo)
+
